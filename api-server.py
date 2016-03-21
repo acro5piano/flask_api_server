@@ -44,7 +44,7 @@ def execute(query):
 
 if __name__ =='__main__':
 	execute('create table if not exists chair_log(id int primary key auto_increment, action varchar(20), inserted_at datetime)')
-	app.run(host='0.0.0.0',debug=True)
+	app.run(host='0.0.0.0',debug=True,port=config.SERVER_PORT)
 
 
 
