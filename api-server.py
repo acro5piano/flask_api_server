@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from flask import Flask, jsonify, render_template
+from flask import Flask, jsonify, render_template, request
 from flask.ext.mysql import MySQL
 
 import config
@@ -25,17 +25,13 @@ def hello_api():
 	result = { "message":"welcome to Flask Api Server!" }
 	return jsonify(result)
 
-@app.route('/api/stand_up')
-def stand_up():
-	query = 'insert into chair_log( action, inserted_at ) values( \'stand_up\', NOW() )'
+@app.route('/api/chair_log',methods=['POST'])
+def chair_log():
+	value = int(request.form['value'])
+	print(value)
+	query = 'insert into chair_log( action, inserted_at ) values( %d , NOW() )' % ( value )
 	execute(query)
 	return jsonify({"message":"ok","action":"stand_up"})
-
-@app.route('/api/sit_down')
-def sit_down():
-	query = 'insert into chair_log( action, inserted_at ) values( \'sit_down\', NOW() )'
-	execute(query)
-	return jsonify({"message":"ok","action":"sit_down"})
 
 def execute(query):
 	conn = mysql.connect()
@@ -50,7 +46,7 @@ def is_music_play():
 
     
 if __name__ =='__main__':
-	execute('create table if not exists chair_log(id int primary key auto_increment, action varchar(20), inserted_at datetime)')
+	execute('create table if not exists chair_log(id int primary key auto_increment, action tinyint(1), inserted_at datetime)')
 	app.run(host='0.0.0.0',debug=True,port=config.SERVER_PORT)
 
 
