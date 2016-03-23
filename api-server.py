@@ -4,6 +4,7 @@ from flask import Flask, jsonify, render_template
 from flask.ext.mysql import MySQL
 
 import config
+import random
 
 app = Flask(__name__)
 
@@ -41,6 +42,13 @@ def execute(query):
 	cursor = conn.cursor()
 	cursor.execute(query)
 	conn.commit()
+
+@app.route('/api/is_music_play/random')
+def is_music_play():
+	rand = random.randint(0,1)
+	return jsonify({"music_play":rand})
+
+    
 
 if __name__ =='__main__':
 	execute('create table if not exists chair_log(id int primary key auto_increment, action varchar(20), inserted_at datetime)')
