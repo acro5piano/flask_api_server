@@ -37,26 +37,37 @@ def chair_log():
 def execute(query):
 	conn = mysql.connect()
 	cursor = conn.cursor()
-	res = cursor.execute(query)
+	cursor.execute(query)
 	conn.commit()
-	return res
+	return cursor
 
 # api to browser
 @app.route('/api/is_music_play')
 def is_music_play():
-	res = execute('select * from (select * from chair_log order by inserted_at desc limit 12) as L where L.action = 0') ;	
-	res = 0 if res > 0 else 1
+	# total of recent 12 of stand
+	recent_stand_time = execute('select count(*) from (select * from chair_log order by inserted_at desc limit 12) as L where L.action = 0').fetchone()[0] ;	
+	# if you stand up at least once , return 0
+	res = 0 if recent_stand_time > 0 else 1
 	return jsonify({"music_play":res})
 
-@app.route('/api/is_music_play/random')
-def is_music_play_random():
-	rand = random.randint(0,1)
-	return jsonify({"music_play":rand})
+@app.route('/api/continous_sit_time')
+def continous_sit_time():
+	row = execute('select count(*) from chair_log as C , (select MAX(inserted_at) as M from chair_log where action = 0) as MAX where MAX.M < C.inserted_at;') ;	
+	res = row.fetchone()[0] * 5
+
+	return jsonify({"continuous_sit_time":res})
+
+@app.route('/api/daytotal_sit_time')
+def daytotal_sit_time():
+	row = execute('select count(*) from chair_log where action = 1 and DATE_SUB(now(),INTERVAL 1 DAY) < inserted_at;') ;	
+	res = row.fetchone()[0] * 5
+	return jsonify({"daytotal_sit_time":res})
 
     
 if __name__ =='__main__':
 	execute('create table if not exists chair_log(id int primary key auto_increment, action tinyint(1), inserted_at datetime)')
-	app.run(host='0.0.0.0',debug=True,port=config.SERVER_PORT)
+	app.run(host='127.0.0.1',debug=True,port=config.SERVER_PORT)
+	#app.run(host='0.0.0.0',debug=True,port=config.SERVER_PORT)
 
 
 
